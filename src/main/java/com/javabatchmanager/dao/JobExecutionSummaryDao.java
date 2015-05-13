@@ -1,5 +1,5 @@
 package com.javabatchmanager.dao;
 
-public interface JobExecutionSummaryDao {
+public interface JobExecutionSummaryDao{
 
 }
