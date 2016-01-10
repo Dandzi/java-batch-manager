@@ -2,9 +2,6 @@ package com.javabatchmanager.dtos;
 
 import org.springframework.web.multipart.MultipartFile;
 
-/*
- * Object used for uploading the file.
- */
 public class FileUploadDto {
 	private String name;
 	private MultipartFile filePart;

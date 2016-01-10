@@ -3,8 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.javabatchmanager</groupId>
 	<artifactId>java-batch-manager</artifactId>
-	<version>1.0.0</version>
 	<packaging>war</packaging>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>java-batch-manager Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 
@@ -80,7 +80,7 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>4.0.5.RELEASE</version>
 		</dependency>
-
+		
 		<!-- javax servlet -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -108,9 +108,6 @@
 			<scope>compile</scope>
 		</dependency>
 
-
-
-
 		<!-- Weld -->
 		<dependency>
 			<groupId>javax.enterprise</groupId>
@@ -121,12 +118,6 @@
 			<groupId>org.jboss.weld</groupId>
 			<artifactId>weld-core</artifactId>
 			<version>2.1.2.Final</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jboss-logging</artifactId>
-					<groupId>org.jboss.logging</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.ws.rs</groupId>
@@ -153,12 +144,6 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${hibernate.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jboss-logging</artifactId>
-					<groupId>org.jboss.logging</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- Jackson -->
@@ -203,53 +188,14 @@
 
 		<!-- Testing -->
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.assertj</groupId>
-			<artifactId>assertj-core</artifactId>
-			<version>2.2.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.junit</groupId>
-			<artifactId>arquillian-junit-container</artifactId>
-			<version>1.1.2.Final-wildfly-1</version>
-			<scope>test</scope>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.jboss.arquillian.protocol</groupId>
-			<artifactId>arquillian-protocol-servlet</artifactId>
-			<version>1.1.2.Final-wildfly-1</version>
-		</dependency>
+		<!-- <dependency> <groupId>org.javaee7.batch</groupId> <artifactId>batch-samples</artifactId> 
+			<version>1.0-SNAPSHOT</version> </dependency> -->
 	</dependencies>
-	<profiles>
-		<profile>
-			<id>arq-jbossas-remote</id>
-			<dependencies>
-				<dependency>
-					<groupId>org.wildfly.arquillian</groupId>
-					<artifactId>wildfly-arquillian-container-remote</artifactId>
-					<version>1.0.2.Final</version>
-					<scope>test</scope>
-				</dependency>
-			</dependencies>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-		</profile>
-	</profiles>
 	<build>
 		<finalName>java-batch-manager</finalName>
 		<plugins>

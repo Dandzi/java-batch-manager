@@ -5,9 +5,9 @@
 		http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<job id="springtestjob" xmlns="http://www.springframework.org/schema/batch">
+	<job id="test" xmlns="http://www.springframework.org/schema/batch">
 		<step id="step1" next="step1">
-			<tasklet start-limit="20">
+			<tasklet start-limit="100">
 				<chunk commit-interval="1" reader="itemReader" writer="itemWriter" />
 			</tasklet>
 		</step>

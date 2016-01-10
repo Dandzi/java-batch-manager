@@ -5,8 +5,7 @@ import java.util.Date;
 public class JobInstanceDto {
 	private String jobName;
 	private String parameters;
-	private Date startTime;
-	private String jobType;
+	private String startTime;
 	private Long jobInstanceId;
 	
 	public String getJobName() {
@@ -27,17 +26,11 @@ public class JobInstanceDto {
 	public void setJobInstanceId(Long jobInstanceId) {
 		this.jobInstanceId = jobInstanceId;
 	}
-	public Date getStartTime() {
+	public String getStartTime() {
 		return startTime;
 	}
-	public void setStartTime(Date startTime) {
+	public void setStartTime(String startTime) {
 		this.startTime = startTime;
-	}
-	public String getJobType() {
-		return jobType;
-	}
-	public void setJobType(String jobType) {
-		this.jobType = jobType;
 	}
 	
 	

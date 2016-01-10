@@ -4,9 +4,9 @@
     </p>
     <div class="col-xs-6 col-sm-2 sidebar-offcanvas" id="sidebar">
       <ul class="nav nav-sidebar">
-        <li><a href="launchable-jobs">Launchable Jobs</a></li>
-        <li><a href="running-jobs">Running Jobs</a></li>
-        <li><a href="past-jobs">Past Jobs</a></li>
+        <li><a href="/java-batch-manager/launchable-jobs">Launchable Jobs</a></li>
+        <li><a href="/java-batch-manager/running-jobs">Running Jobs</a></li>
+        <li><a href="/java-batch-manager/past-jobs">Past Jobs</a></li>
       </ul>
     </div>
 </div>

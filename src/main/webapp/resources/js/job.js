@@ -67,11 +67,6 @@ $(document).ready(function () {
 		}
 		
 	}
-	
-	/*
-	 * Notifications functionality
-	 */
-	//this serves to noticing server that page is redirecting
 	$(document).on("click",".disconnect",function(){
 		if(stompClient !== undefined){
 			stompClient.send("/java-batch-manager/notification",{},"disconnected");
@@ -83,24 +78,17 @@ $(document).ready(function () {
 		var jsonMsg = JSON.parse(msg.body);
 		if(jsonMsg.hasOwnProperty('action')){
 			location.reload();
+
 		}
 		if(jsonMsg.hasOwnProperty('jobName')){
-			buildSpringNotification(jsonMsg.jobName, jsonMsg.parameters, jsonMsg.status);
-			addCookie(jsonMsg);
-		}
-		if(jsonMsg.hasOwnProperty('JSR352msg')){
-			buildJSR352Notification(jsonMsg.JSR352msg);
-			addCookie(jsonMsg);
+			buildNotification(jsonMsg.jobName, jsonMsg.parameters, jsonMsg.status);
+			var date=new Date();
+			date.setSeconds(date.getSeconds()+5);
+			Cookies.set('notification',jsonMsg,{expires:date});
 		}
 	}
 	
-	function addCookie(jsonMsg){
-		var date=new Date();
-		date.setSeconds(date.getSeconds()+5);
-		Cookies.set('notification',jsonMsg,{expires:date});
-	}
-	
-	function buildSpringNotification(jobName,parameters,status){
+	function buildNotification(jobName,parameters,status){
 		$(".notification").removeAttr("style");
 		$(".notification").append("<div class=\"alert alert-success col-md-offset-8 col-md-3\" role=\"alert\">"+ 
 				"Job execution of job " + jobName +" with parameters "+ parameters+ " now has status "+status+
@@ -109,23 +97,13 @@ $(document).ready(function () {
                 			.fadeOut(function(){
                 				$(".alert").remove();
                 			});
-	}
 	
-	function buildJSR352Notification(msg){
-		$(".notification").removeAttr("style");
-		$(".notification").append("<div class=\"alert alert-success col-md-offset-8 col-md-3\" role=\"alert\">"+ 
-				msg+
-				"</div>").animate({ bottom:50, opacity:"show"}, 1000)
-                			.delay(5000)
-                			.fadeOut(function(){
-                				$(".alert").remove();
-                			});
 	}
 	
 	
-	//$(document).on("click",'[data-start="launch"]',function(event){
-	//	stompClient.send("/java-batch-manager/notification",{},JSON.stringify({"test":"test"}));
-	//});
+	$(document).on("click",'[data-start="launch"]',function(event){
+		stompClient.send("/java-batch-manager/notification",{},JSON.stringify({"test":"test"}));
+	});
 	
 	
 	/*
@@ -161,7 +139,7 @@ $(document).ready(function () {
     /*
      * job type selection
      */
-   /* $('.job-type-btn').on("change",function() {        
+    $('.job-type-btn').on("change",function() {        
     	$(".job-type-form").submit();
 		if(stompClient !== undefined){
 			stompClient.send("/java-batch-manager/notification",{},"reload");
@@ -173,17 +151,9 @@ $(document).ready(function () {
     	var activeJobServ = $('.active-job-service').val();
     	$('input[id][value='+activeJobServ+']').parent().addClass("active");    	
     }
-    */
-    
     
     /*
-     * set height
-     */
-    var window_height = $(window).height();
-    $('.past_jobs_height').height(0.23*window_height);
-    $('.future_jobs_height').height(0.50*window_height);
-    /*
-     * autocomplete-search in past job list
+     * autocomplete
      */
     var jobNames = new Array();
     fillJobNames();
@@ -191,31 +161,41 @@ $(document).ready(function () {
     	$(".job-name").each(function(i){
     		jobNames.push($(this).attr("data-job-name"));
     	})
-    	
     }
-      
-    $('#fltr-job-name').on('keyup',function(event){
-    	$(this).autocomplete({
-        	source: jobNames
-        })
-    });
-       
-    $('.filter').on('click',function(event){
-    	var filterStr = $('#fltr-job-name').val();
-    	$(".job-name").each(function(i){
-			var str1 = $(this).data('job-name');
-			if(str1.indexOf(filterStr)==-1){
-				$(this).hide();
-			}
-		});    	
-    });
     
-    $('.reset').on('click',function(event){
-    	$('.filter').val('');
-    	$(".job-name").show(); 	
-    });
-    
+    var jobNameSelect = function () {
+    	
+    } 
 
+    /*$('#fltr-job-name').on('select',function(event){
+    	$(this).val('');
+    	$(".job-name").show();
+
+    })*/
+    
+    $('#fltr-job-name').on('keyup',function(event){
+    	if(event.which == 13){
+    		var str2 = $(this).val();
+    		$(".job-name").each(function(i){
+    			var str1 = $(this).data('job-name');
+    			if(str1.indexOf(str2)==-1){
+    				$(this).hide();
+    			}
+    		})
+    	}
+    	$(this).autocomplete({
+        	source: jobNames,
+        	select: function(){
+        		var str2 = $(this).val();
+        		$(".job-name").each(function(i){
+        			var str1 = $(this).data('job-name');
+        			if(str1.indexOf(str2)==-1){
+        				$(this).hide();
+        			}
+        		})
+        	},        	
+        })
+    })
     
     /*
      * Date Time picker
@@ -227,19 +207,7 @@ $(document).ready(function () {
 	 * Ajax calls for past job content update
 	 */
 	
-    /*
-     * too long params
-     */
-    shortenParams();
-    function shortenParams(){
-    	$('.params').each(function(i){
-            var params = modifyParams($(this).data('value'));
-            $(this).html(params);
-    	});
-    }
-
-
-    $(".list-group-item").on("click", function(event){
+	$(".list-group-item").on("click", function(event){
 		$(".job-name.active").removeClass("active");
 		var jobName=$(this).data("job-name");
 		$('[data-job-name ='+jobName+']').addClass("active");
@@ -263,8 +231,7 @@ $(document).ready(function () {
 				$(".job-instance").remove();
 				var jobInstances=$(".job-instances");
 				$.each(response,function(key,job){
-					$("<a href=\"past-jobs/"+job.jobName+"/"+job.jobInstanceId+"_"+job.jobType+"\" class=\"list-group-item job-instance\">"
-							+job.jobInstanceId+" "+job.jobName+"</a>").appendTo(jobInstances);
+					$("<a href=\"past-jobs/"+job.jobName+"/"+job.jobInstanceId+"\" class=\"list-group-item job-instance\">"+job.jobInstanceId+" "+job.jobName+"</a>").appendTo(jobInstances);
 				});	
 			},
 			error: function(err){
@@ -296,7 +263,7 @@ $(document).ready(function () {
 							"<td class=\"width-min\">"+execution.status+"</td>" +
 							"<td class=\"width-min\">"+converTime(execution.createTime)+"</td>" +
 							"<td class=\"width-min\">"+converTime(execution.startTime)+"</td>" +
-							"<td class=\"width-min\"><a href=\"job-execution/"+execution.jobExecutionId+"_"+execution.jobType+"\" class=\"glyphicon glyphicon-eye-open\"></a></td>" +
+							"<td class=\"width-min\"><a href=\"/java-batch-manager/job-execution/"+execution.jobExecutionId+"\" class=\"glyphicon glyphicon-eye-open\"></a></td>" +
 						"<tr/>").appendTo(".job-executions");
 				});
 			},
@@ -319,11 +286,26 @@ $(document).ready(function () {
 		}
 		return params;
 	}
-
+	
+	function testRest(){
+		$.ajax({
+			url:"/java-batch-manager/rest/execution/0",
+			type: 'GET',
+			dataType: 'json',
+		    contentType: 'application/json',
+		    mimeType: 'application/json',
+			success: function(response){
+				alert(response);
+			},
+			error: function(err){
+				alert(err);
+			}
+		});
+	}
+	
+	//testRest();
 });
-/*
- * file selection functionality
- */
+	
 $(document).on('change', '.btn-file :file', function() {
 	  var input = $(this),
 	      numFiles = input.get(0).files ? input.get(0).files.length : 1,

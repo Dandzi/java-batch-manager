@@ -28,26 +28,11 @@
 		</property>
 	</bean>
 	
-    <bean id="springJobService" class="com.javabatchmanager.service.impl.SpringBatchJobServiceImpl">
+    <bean id="jobService" class="com.javabatchmanager.service.impl.SpringBatchJobServiceImpl">
 		<property name="jobRegistry" ref="jobRegistry"></property>
 		<property name="jobExplorer" ref = "jobExplorer"></property>
 		<property name="jobOperator" ref= "jobOperator"></property>
 	</bean>
-	
-	<bean id="jsrJobService" class="com.javabatchmanager.service.impl.JSR352JobServiceImpl"/>
-	
-	<bean class="com.javabatchmanager.service.impl.FileServiceImpl"></bean>
-	
-	<!-- Scheduler -->
-	<bean id="jobTaskScheduler" class="com.javabatchmanager.scheduling.JobTaskScheduler">
-		<property name="taskScheduler" ref="taskScheduler"></property>
-		<property name="jobServiceJSR" ref="jsrJobService"></property>
-		<property name="jobServiceSpring" ref= "springJobService"></property>
-	</bean>
-	<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
-		<property name="poolSize" value="5" />
-	</bean>
-
 	
      <websocket:message-broker application-destination-prefix="/java-batch-manager">
 		<websocket:stomp-endpoint path="/notification">

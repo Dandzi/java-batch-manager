@@ -1,54 +1,66 @@
-
 package com.javabatchmanager.service.impl;
-import java.util.ArrayList;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.ServiceLoader;
 import java.util.Set;
 
-import org.springframework.batch.core.BatchStatus;
+import javax.inject.Inject;
+
+import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionException;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar;
+import org.springframework.batch.core.configuration.support.JobLoader;
+import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.AbstractJob;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
-import org.springframework.batch.core.launch.NoSuchJobInstanceException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.batch.support.PropertiesConverter;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.stereotype.Service;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.javabatchmanager.dtos.JobExecutionDto;
 import com.javabatchmanager.dtos.JobInstanceDto;
 import com.javabatchmanager.error.BaseBatchException;
 import com.javabatchmanager.error.ExceptionCause;
 import com.javabatchmanager.service.JobService;
 import com.javabatchmanager.utils.SpringDtoCreatorUtils;
+import com.javabatchmanager.watchers.JobExecutionListenerImpl;
+import com.javabatchmanager.watchers.JobExecutionObserver;
+import com.javabatchmanager.watchers.JobExecutionObserverImpl;
+import com.javabatchmanager.watchers.Listener;
+import com.javabatchmanager.watchers.ObservableJobExecution;
 import com.javabatchmanager.watchers.SpringBatchJobListener;
 import com.javabatchmanager.websocket.JobNotificationEndpoint;
-
-
-/**
- * Core implementation of JobService interface, this implmentations focus on Spring Batch jobs. 
- * @author daniel
- *
- */
 @Qualifier("SpringBatch")
-public class SpringBatchJobServiceImpl implements JobService{
+public class SpringBatchJobServiceImpl implements JobService, ApplicationContextAware{
 	
 	
 	private JobRegistry jobRegistry;
@@ -58,13 +70,14 @@ public class SpringBatchJobServiceImpl implements JobService{
 	private JobOperator jobOperator;
 	
 	private Map<String,SpringBatchJobListener> registeredLsteners = new HashMap<String,SpringBatchJobListener>();
-
+	private static ApplicationContext appContext;
 
 
 
 	/*
-	 * start, stop, restart
+	 * start, stop, restart, abandon methods 
 	 */
+
 	
 	public JobExecutionDto start(String jobName, String jobParams) throws BaseBatchException {			
 		AbstractJob job=null;
@@ -78,7 +91,8 @@ public class SpringBatchJobServiceImpl implements JobService{
 		{
 			try {
 				if(!registeredLsteners.containsKey(jobName)){
-					SpringBatchJobListener listener = new SpringBatchJobListener();
+					JobNotificationEndpoint notificationEndpoint = (JobNotificationEndpoint) appContext.getBean("jobNotificationEndpoint");
+					SpringBatchJobListener listener = new SpringBatchJobListener(notificationEndpoint);
 					job.registerJobExecutionListener(listener);
 					registeredLsteners.put(jobName, listener);
 				}
@@ -90,7 +104,7 @@ public class SpringBatchJobServiceImpl implements JobService{
 			} catch (JobInstanceAlreadyExistsException e) {
 				throw new BaseBatchException(e.getMessage(), e, ExceptionCause.JOB_INSTANCE_ALREADY_EXISTS);
 			} catch (UnexpectedJobExecutionException e) {
-				e.printStackTrace();
+				
 			}
 		}				
 		return getJobExecutionById(jobExecutionId);
@@ -108,22 +122,20 @@ public class SpringBatchJobServiceImpl implements JobService{
 			throw new BaseBatchException(e.getMessage(), e, ExceptionCause.NO_SUCH_JOB);
 		} catch (JobExecutionNotRunningException e) {
 			throw new BaseBatchException(e.getMessage(), e, ExceptionCause.JOB_EXECUTION_NOT_RUNNING);
-		} 
+		}
 		
 		return jobExecDto;
 	}
 
 	@Override
 	public JobExecutionDto restart(Long executionId) throws BaseBatchException {
-		Long jobExecID=null;
-		JobExecution jobExec = jobExplorer.getJobExecution(executionId);
-		if (jobExec == null) {
-			throw new BaseBatchException("JobExecution doesn't exists.", ExceptionCause.NO_SUCH_JOB_EXECUTION);
+		JobExecutionDto jobExecDto = getJobExecutionById(executionId);
+		if(!jobExecDto.getIsRestartable()){
+			throw new BaseBatchException("This job execution is not restartable",ExceptionCause.JOB_RESTART);
 		}
 		try {
-			if(jobExec.getStatus()==BatchStatus.STOPPED || jobExec.getStatus()==BatchStatus.FAILED){
-				jobExecID = jobOperator.restart(jobExec.getId());
-			}
+			jobOperator.restart(jobExecDto.getJobExecutionId());
+			jobExecDto.setStatus("STARTED");
 		} catch (JobInstanceAlreadyCompleteException e) {
 			throw new BaseBatchException(e.getMessage(), e, ExceptionCause.JOB_INSTANCE_ALREADY_COMPLETE);
 		} catch (NoSuchJobExecutionException e) {
@@ -134,11 +146,8 @@ public class SpringBatchJobServiceImpl implements JobService{
 			throw new BaseBatchException(e.getMessage(), e, ExceptionCause.JOB_RESTART);
 		} catch (JobParametersInvalidException e) {
 			throw new BaseBatchException(e.getMessage(), e, ExceptionCause.JOB_PARAMETERS_INVALID);
-		} 
-		if(jobExecID!=null){
-			return getJobExecutionById(jobExecID);
 		}
-		return getJobExecutionById(executionId);
+		return jobExecDto;
 	}
 	
 	
@@ -155,28 +164,14 @@ public class SpringBatchJobServiceImpl implements JobService{
 	public Set<String> getJobNames() {		
 		return jobOperator.getJobNames();
 	}
-	
+
 	
 	@Override
-	public List<JobExecutionDto> getJobExecutions(JobInstanceDto jobInstanceDto) throws BaseBatchException {
-		List<Long> jobExecutions=null;
-		if(jobInstanceDto == null){
-			return new ArrayList<JobExecutionDto>();
-		}
-		JobInstance jobInstance = getOriginalJobInstance(jobInstanceDto.getJobInstanceId());
-		if(jobInstance == null){
-			return new ArrayList<JobExecutionDto>();
-		}
-		try {
-			jobExecutions = jobOperator.getExecutions(jobInstance.getInstanceId());
-		} catch (NoSuchJobInstanceException e) {
-			// should never be thrown, we get jobInstance from repo
-			e.printStackTrace();
-		}
+	public List<JobExecutionDto> getJobExecutions(JobInstanceDto jobInstance) {
+		List<JobExecution> jobExecutions = jobExplorer.getJobExecutions(getOriginalJobInstance(jobInstance.getJobInstanceId()));
 		List<JobExecutionDto> jobExecsDtos = new ArrayList<JobExecutionDto>();
-		for(Long jobExec: jobExecutions){
-			JobExecutionDto jobexecdto = getJobExecutionById(jobExec);
-			jobExecsDtos.add(jobexecdto);
+		for(JobExecution jobExec: jobExecutions){
+			jobExecsDtos.add(SpringDtoCreatorUtils.createJobExecDtoFromSpring(jobExec));
 		}
 		return jobExecsDtos;
 	}
@@ -184,44 +179,25 @@ public class SpringBatchJobServiceImpl implements JobService{
 
 	@Override
 	public List<JobInstanceDto> getJobInstances(String jobName, int start,	int count) throws BaseBatchException {
-		try {
-			List<JobInstanceDto> instancesDto = new ArrayList<>();
-			if(start<0 || count <0){
-				return instancesDto;
-			}
-			List<Long> jobInstances = jobOperator.getJobInstances(jobName, start, count);
-			for(Long instanceId: jobInstances){
-				JobInstance jobInst = getOriginalJobInstance(instanceId);
-				JobInstanceDto instanceDto=SpringDtoCreatorUtils.createJobInstanceDtoFromSpring(jobInst);
-				instancesDto.add(instanceDto);
-			}
-			return instancesDto;
-		} catch (NoSuchJobException e) {
-			return new ArrayList<JobInstanceDto>();
-		}		
+		Set<String> jobNames=getJobNames();
+		if(!jobNames.contains(jobNames)){
+			throw new BaseBatchException("Job with name" + jobName +"does not exists", ExceptionCause.NO_SUCH_JOB);
+		}
+		List<JobInstance> jobInstances = jobExplorer.getJobInstances(jobName, start, count);
+		SpringDtoCreatorUtils.createCollectionJobInstDtoFromSpring(jobInstances);
+		return (List<JobInstanceDto>) SpringDtoCreatorUtils.createCollectionJobInstDtoFromSpring(jobInstances);
 	}
 
 	@Override
-	public Set<JobExecutionDto> getRunningJobExecutions(String jobName) throws BaseBatchException {
-		if(jobName==null){
-			return new HashSet<JobExecutionDto>();
-		}
-		try {
-			Set<Long> execIds=jobOperator.getRunningExecutions(jobName);
-			Set<JobExecutionDto> execDtos= new HashSet<>();
-			for(Long id: execIds){
-				execDtos.add(getJobExecutionById(id));
-			}
-			return execDtos;
-		} catch (NoSuchJobException e) {
-			return new HashSet<JobExecutionDto>();
-		}
-
-
+	public Set<JobExecutionDto> getRunningJobExecutions(String jobName) {
+		Set<JobExecution> jobExec=jobExplorer.findRunningJobExecutions(jobName);
+		Set<JobExecutionDto> jobExecs = SpringDtoCreatorUtils.createCollectionJobExecDtoFromSpring(jobExec);
+		return jobExecs;
 	}
 	
+	@SuppressWarnings("null")
 	@Override
-	public List<JobExecutionDto> getAllRunningJobExecutions() throws BaseBatchException {
+	public List<JobExecutionDto> getAllRunningJobExecutions() {
 		Set<String> jobNames = getJobNames();
 		List<JobExecutionDto> jobExecutionsDto = new ArrayList<JobExecutionDto>();
 		for(String jobName:jobNames){
@@ -231,32 +207,47 @@ public class SpringBatchJobServiceImpl implements JobService{
 	}
 
 	
-
+	@Override
+	public List<JobParameters> getJobParametersOfJobInstance(JobInstance jobInstance) {
+		List<JobExecution> jobExecutions=jobExplorer.getJobExecutions(jobInstance);
+		List<JobParameters> jobParams=new ArrayList<JobParameters>();
+		for(JobExecution jobExecution: jobExecutions){
+			jobParams.add(jobExecution.getJobParameters());
+		}		
+		return jobParams;		
+	}
 
 	@Override
-	public JobExecutionDto getJobExecutionById(Long executionId) throws BaseBatchException {
+	public JobExecutionDto getJobExecutionById(Long executionId) {
 		JobExecution jobExec=jobExplorer.getJobExecution(executionId);
 		if(jobExec == null){
-			throw new BaseBatchException("Execution with id " + executionId +"does not exists", ExceptionCause.NO_SUCH_JOB_EXECUTION);
+			throw new NullPointerException("Job execution with id "+executionId+" was not found");
 		}
 		String jobName = jobExec.getJobInstance().getJobName();
 		boolean isRestartable = false;
 		try {
 			Job job = jobRegistry.getJob(jobName);
 			isRestartable = job.isRestartable();
-		} catch (NoSuchJobException e) {
-			//should never be thrown
-			e.printStackTrace();
+		} catch (NoSuchJobException e) {			
 		}		
 		JobExecutionDto jobExecDto=SpringDtoCreatorUtils.createJobExecDtoFromSpring(jobExec);
-		String code = jobExec.getStatus().name();
-		if(BatchStatus.STOPPED.name().equals(code) || BatchStatus.FAILED.name().equals(code)){
+		String code = jobExec.getExitStatus().getExitCode();
+		if(code.equals(ExitStatus.STOPPED.getExitCode()) || code.equals(ExitStatus.FAILED.getExitCode())){
 			jobExecDto.setRestartable(isRestartable);
 		}
 		return jobExecDto;
 	}
-	
 
+	@Override
+	public List<JobExecutionDto> getJobExecutions(Long jobInstanceId) {
+		List<JobExecution> jobExecutions = getOriginalJobExecution(getOriginalJobInstance(jobInstanceId));
+		List<JobExecutionDto> jobExecutionsDto = new ArrayList<JobExecutionDto>();
+		for(JobExecution jobExecution: jobExecutions){
+			jobExecutionsDto.add(SpringDtoCreatorUtils.createJobExecDtoFromSpring(jobExecution));
+		}
+		return jobExecutionsDto;
+	}
+	
 	
 	//----------------------------------------------------------------------------------------------------------------------------
 	//----------------------------------------------------------------------------------------------------------------------------
@@ -294,14 +285,57 @@ public class SpringBatchJobServiceImpl implements JobService{
 		this.jobExplorer = jobExplorer;
 	}
 	
-	JobRegistry getJobRegistry() {
+	/*
+	public JobLoader getJobLoader() {
+		return jobLoader;
+	}
+
+	public void setJobLoader(JobLoader jobLoader) {
+		this.jobLoader = jobLoader;
+	}
+*/
+	/*public JobLauncher getJobLauncher() {
+		return jobLauncher;
+	}
+
+	public void setJobLauncher(JobLauncher jobLauncher) {
+		this.jobLauncher = jobLauncher;
+	}*/
+
+	/*public JobRepository getJobRepository() {
+		return jobRepository;
+	}
+
+	public void setJobRepository(JobRepository jobRepository) {
+		this.jobRepository = jobRepository;
+	}*/
+
+	public JobRegistry getJobRegistry() {
 		return jobRegistry;
 	}
 
 	public void setJobRegistry(JobRegistry jobRegistry) {
 		this.jobRegistry = jobRegistry;
 	}
+/*
+	public AutomaticJobRegistrar getAutomaticJobRegistrar() {
+		return automaticJobRegistrar;
+	}
 
+	public void setAutomaticJobRegistrar(AutomaticJobRegistrar automaticJobRegistrar) {
+		this.automaticJobRegistrar = automaticJobRegistrar;
+	}
+
+	public JobParametersConverter getJobParametersConverter() {
+		return jobParametersConverter;
+	}
+
+
+	public void setJobParametersConverter(
+			JobParametersConverter jobParametersConverter) {
+		this.jobParametersConverter = jobParametersConverter;
+	}
+*/
 
 	public JobOperator getJobOperator() {
 		return jobOperator;
@@ -309,6 +343,18 @@ public class SpringBatchJobServiceImpl implements JobService{
 
 	public void setJobOperator(JobOperator jobOperator) {
 		this.jobOperator = jobOperator;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext appContext) throws BeansException {
+		this.appContext = appContext;
+		
+	}
+
+	@Override
+	public JobInstanceDto getJobInstanceById(Long instanceId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

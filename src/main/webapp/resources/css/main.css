@@ -119,17 +119,4 @@
 }
 .ui-helper-hidden-accessible {
   display: none;
-}
-
-/*scrolling*/
-.past_jobs_height{
-    overflow: auto;
-}
-.future_jobs_height{
-	overflow: auto;
-}
- 
- /*tooltip length*/
-.tooltip-inner{
-    word-wrap: break-word;
-}
+}    

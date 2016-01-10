@@ -4,9 +4,9 @@
 			xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
 			xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
   <display-name>Java Batch Manager</display-name>
-<!--   <welcome-file-list>
+  <welcome-file-list>
     <welcome-file>WEB-INF/pages/launchable-jobs.jsp</welcome-file>
-  </welcome-file-list> -->
+  </welcome-file-list>
   
 	<listener>
        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>

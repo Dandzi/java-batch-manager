@@ -1,5 +1,6 @@
 package com.javabatchmanager.error;
 
+import org.springframework.batch.core.JobExecutionException;
 
 @SuppressWarnings("serial")
 public class RestException extends Exception{
@@ -13,11 +14,6 @@ public class RestException extends Exception{
 	public RestException(String s,Throwable e){
 		super(s,e);
 	};
-	
-	public RestException(String s, String errorCode) {
-		this(s);
-		this.setErrorCode(errorCode);
-	}
 	
 	public RestException(String s,Throwable e, String [] wrongParameters, String errorCode) {
 		super(s,e);

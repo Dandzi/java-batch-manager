@@ -18,13 +18,13 @@ package com.javabatchmanager.example;
 import org.springframework.batch.item.ItemReader;
 
 /**
- * Example Item Reader
+ * {@link ItemReader} with hard-coded input data.
  */
 public class ExampleItemReader implements ItemReader<String> {
 
 	private static final int MAX_OUTER = 0;
 
-	private String[] input = {"word","anotherWord","testWord", "simpleWord", "loooooongWord","shrtWrd"};
+	private String[] input = { "Hello", "world!", "Wow", "that's", "cool!" };
 
 	private int index = 0;
 

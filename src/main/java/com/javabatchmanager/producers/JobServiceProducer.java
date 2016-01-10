@@ -12,7 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.javabatchmanager.service.JobService;
-import com.javabatchmanager.service.impl.JobServiceImpl;
+import com.javabatchmanager.service.impl.SpringBatchJobServiceImpl;
 
 
 public class JobServiceProducer {
@@ -31,17 +31,17 @@ public class JobServiceProducer {
 		return createJobServiceImplWithParams(createPlainJobServiceImpl());
 	}
 	
-	public JobServiceImpl createPlainJobServiceImpl(){
-		return new JobServiceImpl();
+	public SpringBatchJobServiceImpl createPlainJobServiceImpl(){
+		return new SpringBatchJobServiceImpl();
 	}
 	
-	public JobServiceImpl createJobServiceImplWithParams(JobServiceImpl jobServiceImpl) throws Exception{
-		jobServiceImpl.setJobLauncher(jobLauncher);
-		jobServiceImpl.setJobLoader(jobLoader);
-		jobServiceImpl.setJobRegistry(jobRegistry);
-		jobServiceImpl.setJobRepository(jobRepository);
+	public SpringBatchJobServiceImpl createJobServiceImplWithParams(SpringBatchJobServiceImpl jobServiceImpl) throws Exception{
+		//jobServiceImpl.setJobLauncher(jobLauncher);
+		//jobServiceImpl.setJobLoader(jobLoader);
+		//jbServiceImpl.setJobRegistry(jobRegistry);
+		//jobServiceImpl.setJobRepository(jobRepository);
 
-		jobServiceImpl.setAutomaticJobRegistrar(automaticJobRegistrar);
+		//jobServiceImpl.setAutomaticJobRegistrar(automaticJobRegistrar);
 			
 		ClasspathXmlApplicationContextsFactoryBean contextFactory = new ClasspathXmlApplicationContextsFactoryBean();
 		PathMatchingResourcePatternResolver pathMatchingResourcePatternResolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();

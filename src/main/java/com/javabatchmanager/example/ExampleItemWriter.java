@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.item.ItemWriter;
 
 /**
- * Example item Writer
+ * Dummy {@link ItemWriter} which only logs data it receives.
  */
 public class ExampleItemWriter implements ItemWriter<Object> {
 
@@ -32,12 +32,13 @@ public class ExampleItemWriter implements ItemWriter<Object> {
 	public void setFail(boolean fail) {
 		this.fail = fail;
 	}
+
 	/**
 	 * @see ItemWriter#write(List)
 	 */
 	public void write(List<? extends Object> data) throws Exception {
 		log.info(data);
-		if (fail) {
+		if (fail ) {
 			throw new RuntimeException("Planned failure");
 		}
 	}

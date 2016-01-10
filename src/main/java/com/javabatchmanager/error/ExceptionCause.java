@@ -23,8 +23,8 @@ public enum ExceptionCause {
 		JOB_INSTANCE_ALREADY_COMPLETE("job.instance.already.complete"),
 		JOB_INTERRUPTED("job.interrupted"),
 		JOB_PARAMETERS_INVALID("job.parameters.invalid"),
-		JOB_PARAMETERS_NOT_FOUND("job.parameters.not.found"),
-		JOB_EXECUTION("job.execution");
+		JOB_PARAMETERS_NOT_FOUND("job.parameters.not.found");
+		
 		private final String errCode;
 		
 		ExceptionCause(String errCode){

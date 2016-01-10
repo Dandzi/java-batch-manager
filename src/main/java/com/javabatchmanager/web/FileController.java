@@ -1,9 +1,13 @@
 package com.javabatchmanager.web;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 import org.springframework.batch.core.configuration.DuplicateJobException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +18,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.javabatchmanager.dtos.FileUploadDto;
+import com.javabatchmanager.dtos.JobInstanceDto;
 import com.javabatchmanager.service.FileService;
 
 @Controller
@@ -41,15 +48,15 @@ public class FileController {
 	public String saveFileUpload(@ModelAttribute("file") FileUploadDto file,
 			BindingResult errors) throws IOException, ServletException,
 			DuplicateJobException {
+		if (!fileService.fileExists(file.getFilePart().getOriginalFilename())) {
 			try {
 				fileService.saveFile(file);
 			} catch (DuplicateJobException ex) {
-				ex.printStackTrace();
-				errors.rejectValue("name", "job.file.error.exist");
+				errors.rejectValue("jobName", "job.file.error.exist");
 			} catch (XmlBeanDefinitionStoreException ex) {
-				ex.printStackTrace();
-				errors.rejectValue("name", "job.file.error.not.context");
+				errors.rejectValue("jobName", "job.file.error.not.context");
 			}
+		}
 		return "job-upload";
 	}
 }

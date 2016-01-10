@@ -1,145 +1,136 @@
 package com.javabatchmanager.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Observer;
 import java.util.Set;
 
-import javax.batch.operations.JobExecutionNotMostRecentException;
-import javax.batch.operations.JobExecutionNotRunningException;
-import javax.batch.operations.JobRestartException;
-import javax.batch.operations.JobSecurityException;
-import javax.batch.operations.NoSuchJobExecutionException;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.batch.core.JobInstance;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
+import org.springframework.batch.core.launch.NoSuchJobException;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.javabatchmanager.dtos.JobExecutionDto;
 import com.javabatchmanager.dtos.JobInstanceDto;
 import com.javabatchmanager.error.BaseBatchException;
 import com.javabatchmanager.error.ExceptionCause;
+import com.javabatchmanager.watchers.JobExecutionObserver;
+import com.javabatchmanager.watchers.Listener;
 
-/**
- * Core interface for launching, stopping, restarting jobs, and getting informations about them.
- * @author daniel
- *
- */
 public interface JobService {
+
 	
-	
+	//Starts job with name jobName and parameters jobParams.
 	/**
-	 * Method for launchig the job.
-	 * @param jobName we try to start job with this name 
-	 * @param jobParams the paramaters with which the job will be started
-	 * @return JobExecutionDto object with information about launched jobExecution.
-	 * @throws BaseBatchException with cause NoSuchJob when Job with given name cannot be found, or for launching.
-	 * 		   <br/>
-	 * 		   BaseBatchException with cause JobParametersInvalid when job parameters are not valid.
-	 *  	   <br/>
-	 * 		   BaseBatchException with cause JobInstanceAlreadyExists when jobInstance with given name and params already exists.
-	 * 		   <br/>
-	 * 		   When UnexpectedJobExecutionException occurs method will print its stacktrace
-	 * 	<br/> JOB_SECURITY - JSR352 when JobSecurityException happens
+	 * 
+	 * @param jobName
+	 * @param jobParams
+	 * @param jobExecutionListener
+	 * @return
+	 * @throws BaseBatchException 
 	 */
 	public JobExecutionDto start(String jobName, String jobParams) throws BaseBatchException;
-	
-	
-	
+
+	 //Restart job execution with id executionId.
 	/**
-	 * This method restarts execution by given id.
-	 * @param executionId id of execution to be restarted
-	 * @return JobExecutionDto object
-	 * @throws BaseBatchException throw when these causes happens:
-	 * <br/>JOB_RESTART <br/>- Spring An exception indicating an illegal attempt to restart a job.
-	 * 				<br/>- JSR352 An exception indicating an illegal attempt to restart a job.
 	 * 
-	 * <br/>JOB_INSTANCE_ALREADY_COMPLETE-Spring An exception indicating an illegal attempt to restart a job that was already completed successfully.
-	 * 
-	 * <br/>NO_SUCH_JOB-Spring Checked exception to indicate that a required Job is not available.
-	 * 
-	 * <br/>NO_SUCH_JOB_EXECUTION-Spring Checked exception to indicate that a required JobExecution is not available.
-	 * 
-	 * <br/>JOB_PARAMETERS_INVALID-Spring Exception for Job to signal that some JobParameters are invalid.
-	 *
-	 * <br/>JOB_EXECUTION_ALREADY_COMPLETE-JSR352 When JobExecution already ended successfully
-	 * 
-	 * <br/> JOB_EXECUTION_NOT_MOST_RECENT-JSR352 not most recent execution is trying to be restarted.
-	 * 
-	 * <br/> JOB_SECURITY - JSR352 when JobSecurityException happens
+	 * Possible exception causes:
+	 * <br/>JOB_INSTANCE_ALREADY_COMPLETE
+	 * <br/>NO_SUCH_JOB_EXECUTION
+	 * <br/>NO_SUCH_JOB
+	 * <br/>JOB_RESTART
+	 * <br/>JOB_PARAMETERS_INVALID
+	 * @param executionId
+	 * @return
+	 * @throws BaseBatchException 
 	 */
 	public JobExecutionDto restart(Long executionId) throws BaseBatchException;
 
-
-	
-	
 	/**
-	 * Stop running execution.
+	 * Stop running executions.
 	 * 
-	 * @param executionId this execution will be stopped
-	 * @throws BaseBatchException throw when these causes happens:<br/>
-	 * NO_SUCH_JOB_EXECUTION <br/>
-	 * 						- JSR352 when there is no execution with given id <br/>
-	 * 						- Spring when there is no execution with given id<br/>
-	 * JOB_EXECUTION_NOT_RUNNING  <br/>
-	 * 						- JSR352 when given execution is not running <br/>
-	 * 						- Spring when given execution is not running <br/>
-	 * JOB_SECURITY - JSR352 when JobSecurityException happens <br/>
-	 * @return JobExecutionDto object 
+	 * @param executionId
+	 * @throws BaseBatchException 
+	 * 
 	 */
 	public JobExecutionDto stop(Long executionId) throws BaseBatchException;
 
+	//public void abandon(Long executionId);
 
 	/**
-	 * Method returns set of launchable jobNames known to runtime.
+	 * These jobs can be launched.
 	 * 
-	 * @return Set<String> jobNames - set of jobnames which can be launched.
+	 * @return
+	 * @throws BaseBatchException 
 	 */
-	public Set<String> getJobNames() ;
+	public Set<String> getJobNames() throws BaseBatchException;
 
 	/**
-	 * This method return list of JobInstanceDto.
+	 * These jobs are saved in db.
 	 * 
-	 * @param jobName search jobInstances by given name
-	 * @param start id from which to start searching in jobInstances
-	 * @param count maximum count of jobInstances
-	 * @return List of jobInstanceDto, if there are no JobInstances return empty List 
-	 * @throws BaseBatchException JSR352 when jobSecurity exception occurs
+	 * @return
+	 * @throws BaseBatchException 
 	 */
+	//public List<String> getAllJobNamesFromRepo() throws BaseBatchException;
 
-	public List<JobInstanceDto> getJobInstances(String jobName, int start, int count) throws BaseBatchException;
+	/**
+	 * Find job with name jobName at Runtime.
+	 * 
+	 * @param jobName
+	 * @return
+	 * 
+	 */
+	//public Job getJobByName(String jobName);
+
+	/**
+	 * !!!! mention that jsr 352 dont have method for getting jobinstance by id 
+	 * @return
+	 */
 	
-	/**
-	 * Method returns all job executions of given jobInstance, if there is none, returns empty list
-	 * @param jobInstance of which jobExecutions are returned
-	 * @return List of jobExecutionDto, if there is none return empty list.
-	 * @throws BaseBatchException JSR352 when jobSecurity exception occurs
-	 */
+	public JobInstanceDto getJobInstanceById(Long instanceId);
+
+	//public List<JobExecutionDto> getAllJobExecutionsList();
 
 	public List<JobExecutionDto> getJobExecutions(JobInstanceDto jobInstance) throws BaseBatchException;
 
+	public List<JobExecutionDto> getJobExecutions(Long jobInstanceId) throws BaseBatchException;
 
-	/**
-	 * Returns JobExecutionDto information object by id of JobExecution.
-	 * @param id of jobExecution, which we want to return
-	 * @return if jobExecution doesnt exist (is null) returns null, else return JobExecutionDto object
-	 * @throws BaseBatchException JSR352 when jobSecurity exception occurs
-	 * cause: NO_SUCH_JOB_EXECUTION when no NoSuchJobExecutionException | NullPointerException occurs.
-	 */
+	public List<JobInstanceDto> getJobInstances(String jobName, int start, int count) throws BaseBatchException;
+
 	public JobExecutionDto getJobExecutionById(Long id) throws BaseBatchException;
 
-	
 	/**
 	 * Returns set of running job executions of given job name.
-	 * When NoSuchJobException occurs because of no job execution of given name was ever launched, returns empty HashSet.
-	 * NoSuchJobException is defined for both Spring Batch and JSR352
-	 * @param jobName returns executions by this name
-	 * @return Set of jobExecutionDto of given name
-	 * @throws BaseBatchException JSR352 when jobSecurity exception occurs
+	 * 
+	 * @param jobName
+	 * @return
+	 * @throws BaseBatchException 
 	 */
+
 	public Set<JobExecutionDto> getRunningJobExecutions(String jobName) throws BaseBatchException;
 
 	/**
-	 * Finds all running job executions. When no executions are running returns empty list.
+	 * Finds all running job executions.
 	 * 
-	 * @return List of all running jobExecutions.
-	 * @throws BaseBatchException JSR352 when jobSecurity exception occurs
+	 * @return
+	 * @throws BaseBatchException 
 	 */
 	public List<JobExecutionDto> getAllRunningJobExecutions() throws BaseBatchException;
+
+	public List<JobParameters> getJobParametersOfJobInstance(JobInstance jobInstance);
+
+	//public List<JobInstanceDto> getJobInstanceDtos();
+
+	//public Set<String> getUniqueJobNames();
 
 	
 }

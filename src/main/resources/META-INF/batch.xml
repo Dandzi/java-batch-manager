@@ -1,3 +1,1 @@
-<batch-artifacts xmln="http://xmlns.jcp.org/xml/ns/javaee/">
-    <ref id="JSR352listener" class="com.javabatchmanager.watchers.JSR352JobListener" />
-</batch-artifacts>
+<batch-artifacts xmln="http://xmlns.jcp.org/xml/ns/javaee/"></batch-artifacts>

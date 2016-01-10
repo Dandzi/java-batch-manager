@@ -27,11 +27,7 @@
 		<property name="applicationContextFactories">
 			<bean
 				class="org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean">
-				<property name="resources">
-					<list>
-						<value>classpath*:/META-INF/batchjobs/*</value>
-					</list>
-				</property>
+				<property name="resources" value="classpath*:/META-INF/batch-jobs/*" />
 			</bean>
 		</property>
 		<property name="jobLoader">
@@ -53,17 +49,18 @@
 	<bean id="jobParametersConverter"
 		class="org.springframework.batch.core.converter.DefaultJobParametersConverter">
 	</bean>
-
-	<bean id="dbJobExplorer"
-		class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
+	
+	<bean id = "dbJobExplorer" class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
-
-	<bean id="jobExplorer"
-		class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
+	
+	<bean id = "jobExplorer" class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
 		<property name="repositoryFactory" ref="&amp;jobRepository"></property>
 	</bean>
-
-
+	
+	<!-- Scheduler -->
+	<bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<property name="poolSize" value="5" />
+	</bean>
 
 </beans>

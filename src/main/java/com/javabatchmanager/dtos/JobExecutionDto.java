@@ -1,32 +1,20 @@
 package com.javabatchmanager.dtos;
 
 import java.util.Date;
-import java.util.List;
 
-/**
- * Our object representing JobExecution.
- */
+import org.springframework.batch.core.BatchStatus;
+
 public class JobExecutionDto {
 	private long jobExecutionId;
 	private String jobName;
 	private String parameters;
 	private Date createTime;
 	private Date startTime;
-	private Date finishedTime;
 	private String status;
-	private String exitDescription;
 	private boolean stop = false;
 	private boolean isRestartable;
-	private String jobType;
-	private String idAndType;
-	private List<StepExecutionDto> stepExecutionsDto;
 	
-	public List<StepExecutionDto> getStepExecutionsDto() {
-		return stepExecutionsDto;
-	}
-	public void setStepExecutionsDto(List<StepExecutionDto> stepExecutionsDto) {
-		this.stepExecutionsDto = stepExecutionsDto;
-	}
+	
 	public String getJobName() {
 		return jobName;
 	}
@@ -76,29 +64,5 @@ public class JobExecutionDto {
 	}
 	public void setRestartable(boolean isRestartable) {
 		this.isRestartable = isRestartable;
-	}
-	public String getJobType() {
-		return jobType;
-	}
-	public void setJobType(String jobType) {
-		this.jobType = jobType;
-	}
-	public String getIdAndType() {
-		return idAndType;
-	}
-	public void setIdAndType(String idAndType) {
-		this.idAndType = idAndType;
-	}
-	public Date getFinishedTime() {
-		return finishedTime;
-	}
-	public void setFinishedTime(Date finishedTime) {
-		this.finishedTime = finishedTime;
-	}
-	public String getExitDescription() {
-		return exitDescription;
-	}
-	public void setExitDescription(String exitDescription) {
-		this.exitDescription = exitDescription;
 	}
 }

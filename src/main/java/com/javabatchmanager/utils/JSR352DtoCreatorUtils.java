@@ -7,14 +7,9 @@ import java.util.List;
 
 import javax.batch.runtime.JobExecution;
 import javax.batch.runtime.JobInstance;
-import javax.batch.runtime.StepExecution;
-
-import org.jberet.runtime.AbstractStepExecution;
-import org.jberet.runtime.JobExecutionImpl;
 
 import com.javabatchmanager.dtos.JobExecutionDto;
 import com.javabatchmanager.dtos.JobInstanceDto;
-import com.javabatchmanager.dtos.StepExecutionDto;
 
 public class JSR352DtoCreatorUtils {
 
@@ -28,7 +23,6 @@ public class JSR352DtoCreatorUtils {
 		JobInstanceDto jld = new JobInstanceDto();
 		jld.setJobName(jobInstance.getJobName());
 		jld.setJobInstanceId(jobInstance.getInstanceId());
-		jld.setJobType("jsr");
 		return jld;
 	}
 	
@@ -43,48 +37,11 @@ public class JSR352DtoCreatorUtils {
 		jed.setJobName(jobExecution.getJobName());
 		jed.setCreateTime(jobExecution.getCreateTime());
 		jed.setStartTime(jobExecution.getStartTime());
-		jed.setFinishedTime(jobExecution.getEndTime());		
-		jed.setStatus(jobExecution.getBatchStatus().name());
+		jed.setStatus(jobExecution.getExitStatus());
 		jed.setParameters(jobExecution.getJobParameters().toString());
 		jed.setJobExecutionId(jobExecution.getExecutionId());
-		if(jobExecution instanceof JobExecutionImpl){
-			List<StepExecution> stepExecutions = ((JobExecutionImpl) jobExecution).getStepExecutions();
-			List<StepExecutionDto> stepsDto = createStepExecutionsDto(stepExecutions);
-			jed.setStepExecutionsDto(stepsDto);
-		}
-		jed.setJobType("jsr");
-		jed.setExitDescription(jobExecution.getExitStatus());
 		return jed;
 	}
-	
-	private static List<StepExecutionDto> createStepExecutionsDto(List<StepExecution> steps){
-		List<StepExecutionDto> stepExecutions = new ArrayList<StepExecutionDto>();
-		for(StepExecution step: steps){
-			stepExecutions.add(createStepExecutionDto(step));
-		}
-		return stepExecutions;
-		
-	}
-	
-	private static StepExecutionDto createStepExecutionDto(StepExecution stepExecution){
-		StepExecutionDto stepDto = new StepExecutionDto();
-		if(stepExecution instanceof AbstractStepExecution){
-			if(((AbstractStepExecution) stepExecution).getException() != null){
-				stepDto.setExitDescription(((AbstractStepExecution) stepExecution).getException().getMessage());
-			}
-			stepDto.setId(((AbstractStepExecution) stepExecution).getStepExecutionId());
-			stepDto.setReaderCheckpointInfo(((AbstractStepExecution) stepExecution).getReaderCheckpointInfo());
-			stepDto.setWriterCheckpointInfo(((AbstractStepExecution) stepExecution).getWriterCheckpointInfo());			
-		}
-		stepDto.setPersistentUserData(stepExecution.getPersistentUserData());
-		stepDto.setEndTime(stepExecution.getEndTime());
-		stepDto.setStartTime(stepExecution.getStartTime());
-		stepDto.setExitStatus(stepExecution.getExitStatus());
-		stepDto.setStepName(stepExecution.getStepName());
-		
-		return stepDto;
-	}
-	
 	
 	/**
 	 * 

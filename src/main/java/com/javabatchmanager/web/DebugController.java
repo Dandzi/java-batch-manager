@@ -33,29 +33,31 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.javabatchmanager.dtos.JobLaunchDto;
-import com.javabatchmanager.experiment.AutomaticJobRegistrarWrapper;
+import com.javabatchmanager.dtos.JobInstanceDto;
 import com.javabatchmanager.service.JobService;
-import com.javabatchmanager.service.JobSummaryService;
 
-@Controller
+//@Controller
+//@RequestMapping("/debug")
 public class DebugController{
 
-	private JobService jobService;
+	/*private JobService jobService;
 
-	private List<JobLaunchDto> jobList = new ArrayList<JobLaunchDto>();
+	private List<JobInstanceDto> jobList = new ArrayList<JobInstanceDto>();
 	
 	@ModelAttribute("joblist")
-	public List<JobLaunchDto> getJobList(ModelMap model){
+	public List<JobInstanceDto> getJobList(ModelMap model){
 		if(this.jobList.isEmpty()){
-			Collection<String> jobs = jobService.getAllLaunchableJobNameList();
+			//Collection<String> jobs = jobService.getAllLaunchableJobNameList();
 			for(String jobName: jobs){
-				JobLaunchDto jld = new JobLaunchDto();
+				JobInstanceDto jld = new JobInstanceDto();
 				jld.setJobName(jobName);
 				jld.setParameters("");				
 				this.jobList.add(jld);
 			}
-			return jobList;
+			JobInstanceDto jld = new JobInstanceDto();
+			jld.setParameters("");
+			jld.setJobName("tlllllllllllllllllllllest");
+			this.jobList.add(jld);
 		}
 		return jobList;
 	}
@@ -68,7 +70,7 @@ public class DebugController{
 	
 	@RequestMapping(value= "/job-list" , method = RequestMethod.GET)
 	public String viewJobList(ModelMap model) throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
-		for(JobLaunchDto job: jobList){
+		for(JobInstanceDto job: jobList){
 			model.addAttribute(job.getJobName(), job);
 		}
 		//model.addAttribute("job", jobList.get(0));
@@ -76,11 +78,11 @@ public class DebugController{
     }
 		
 	@RequestMapping(value = "/job-list/{jobname}", method = RequestMethod.POST)
-	public String launch(@ModelAttribute("joblist") ArrayList<String> jobList, @ModelAttribute("{jobname}")JobLaunchDto jld,
-						@PathVariable String jobname, ModelMap model) 
+	public String launch( @ModelAttribute("{jobname}")JobInstanceDto jld, ModelMap model) 
 								throws NoSuchJobException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException{
-		JobExecution jobExecution = jobService.start(jobname, null);
-		return "/job-list";
+//		JobExecution jobExecution = jobService.start(jld.getJobName(), null);
+		
+		return "job-list";
 	}
 	
 	@RequestMapping(value="/executed-job-list", method = RequestMethod.GET)
@@ -94,5 +96,5 @@ public class DebugController{
 
 	public void setJobService(JobService jobService) {
 		this.jobService = jobService;
-	}
+	}*/
 }

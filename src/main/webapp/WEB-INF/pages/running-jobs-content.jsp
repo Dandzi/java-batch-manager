@@ -6,8 +6,7 @@
  <p class="lead">List of jobs that are currently running.</p>
  <div class="row">
   <div class="col-md-10">
-   <form:form modelAttribute="jobExecutionsList" method="POST" action="running-jobs/stop" class="form-horizontal">
-    
+   <form:form modelAttribute="jobExecutionsList" method="POST" action="/java-batch-manager/running-jobs/stop" class="form-horizontal">
     <c:forEach items="${jobExecutionsList.allJobExecutions}" var="job" varStatus="status">
      <div class="form-group col-md-12">
       <div class="row">
@@ -16,7 +15,7 @@
        </div>
        <div class="col-md-2">
         <label class="control-label text-center pad-r-20 job-name" data-toggle="tooltip" data-placement="top" data-job-name="${job.jobName}"
-         title="Job name: ${job.jobName}_jsr">${job.jobName}</label>
+         title="Job name: ${job.jobName}">${job.jobName}</label>
        </div>
        <div class="col-md-2">
         <label class="control-label text-center pad-r-20 job-name" data-toggle="tooltip" data-placement="top" data-job-name="${job.parameters}"
@@ -26,19 +25,16 @@
         <label class="control-label text-center pad-r-20 job-name" data-toggle="tooltip" data-placement="top" data-job-name="${job.status}"
          title="Job status: ${job.status}">${job.status} </label>
        </div>
-       
        <div class="btn-group" data-toggle="buttons">
         <label class="btn btn-default">
-         <form:checkbox path="allJobExecutions[${status.index}].idAndType" value="${job.jobExecutionId}_${job.jobType}" />
+         <form:checkbox path="allJobExecutions[${status.index}].stop" value="true" />
          stop
         </label>
        </div>
-       
       </div>
       <form:errors path="allJobExecutions[${status.index}]" cssClass="alert alert-danger" />
      </div>
     </c:forEach>
-    
     <div>
      <button type="submit" class="disconnect btn btn-default">Stop selected jobs</button>
      <form:errors cssClass="alert alert-danger" />
