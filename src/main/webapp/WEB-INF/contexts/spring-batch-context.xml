@@ -27,7 +27,11 @@
 		<property name="applicationContextFactories">
 			<bean
 				class="org.springframework.batch.core.configuration.support.ClasspathXmlApplicationContextsFactoryBean">
-				<property name="resources" value="classpath*:/META-INF/batchjobs/*.xml" />
+				<property name="resources">
+					<list>
+						<value>classpath*:/META-INF/batchjobs/*</value>
+					</list>
+				</property>
 			</bean>
 		</property>
 		<property name="jobLoader">
@@ -40,12 +44,7 @@
 
 	<bean id="jobOperator"
 		class="org.springframework.batch.core.launch.support.SimpleJobOperator">
-		<property name="jobExplorer">
-			<bean
-				class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
-				<property name="dataSource" ref="dataSource"></property>
-			</bean>
-		</property>
+		<property name="jobExplorer" ref="jobExplorer" />
 		<property name="jobRepository" ref="jobRepository" />
 		<property name="jobRegistry" ref="jobRegistry" />
 		<property name="jobLauncher" ref="jobLauncher" />
@@ -54,13 +53,17 @@
 	<bean id="jobParametersConverter"
 		class="org.springframework.batch.core.converter.DefaultJobParametersConverter">
 	</bean>
-	
-	<bean id = "dbJobExplorer" class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
+
+	<bean id="dbJobExplorer"
+		class="org.springframework.batch.core.explore.support.JobExplorerFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
-	
-	<bean id = "jobExplorer" class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
+
+	<bean id="jobExplorer"
+		class="org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean">
 		<property name="repositoryFactory" ref="&amp;jobRepository"></property>
 	</bean>
+
+
 
 </beans>

@@ -1,0 +1,135 @@
+/*alert style*/
+.illeg-attr{	
+	display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+.col-width-45 {
+	width: 45%;
+}
+
+.col-width-10 {
+	width: 10%;
+}
+
+.col-width-5 {
+	width: 5%;
+}
+
+.col-margin-10 {
+	margin-left: 10px;
+}
+
+.pad-r-20{
+	padding-right: 20px;
+}
+
+.start-count-form{
+    margin-left: 30px;
+    margin-bottom: 15px;
+}
+
+.start-count-label{
+    margin-top: 5px;
+    margin-bottom: 15px;
+    width: 5%;
+}
+.active{
+	color: #000;
+    background-color: rgba(255, 255, 255);
+    border-color: #337ab7;
+}
+
+.panel-success {
+    border-color: #9D9D9D;
+}
+
+.panel-success>.panel-heading {
+    color: #9D9D9D;
+    background-color: #222222;
+    border-color: #9D9D9D;
+}
+
+.br {
+    padding-left: 5px;
+    padding-top: 13px;
+    padding-bottom: 13px;
+    margin-left: 50px;
+    border-left: 1px solid #DDD;
+}
+    
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+} 
+    
+.t-width {
+	width: 14%;
+}  
+.t-width-min {
+	width: 2%;
+}
+    
+.ui-autocomplete {
+    position: absolute;
+    z-index: 1000;
+    cursor: default;
+    padding: 0;
+    margin-top: 2px;
+    list-style: none;
+    background-color: #ffffff;
+    border: 1px solid #ccc
+    -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+            border-radius: 5px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+       -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+.ui-autocomplete > li {
+  padding: 3px 20px;
+}
+.ui-autocomplete > li.ui-state-focus {
+  background-color: #DDD;
+}
+.ui-helper-hidden-accessible {
+  display: none;
+}
+
+/*scrolling*/
+.past_jobs_height{
+    overflow: auto;
+}
+.future_jobs_height{
+	overflow: auto;
+}
+ 
+ /*tooltip length*/
+.tooltip-inner{
+    word-wrap: break-word;
+}

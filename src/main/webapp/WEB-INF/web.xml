@@ -4,19 +4,19 @@
 			xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
 			xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
   <display-name>Java Batch Manager</display-name>
-  <welcome-file-list>
-    <welcome-file>pages/index.jsp</welcome-file>
-  </welcome-file-list>
+<!--   <welcome-file-list>
+    <welcome-file>WEB-INF/pages/launchable-jobs.jsp</welcome-file>
+  </welcome-file-list> -->
+  
+	<listener>
+       <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+   </listener>
    
   <context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>/WEB-INF/contexts/*context.xml</param-value>
+		<param-value>/WEB-INF/contexts/master-context.xml</param-value>
   </context-param>
 
-	<listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-    </listener>
-  
   <servlet>
   	<servlet-name>mvc-dispatcher</servlet-name>
         <servlet-class>
@@ -29,6 +29,12 @@
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+        <multipart-config>
+      		<max-file-size>20848820</max-file-size>
+      		<max-request-size>418018841</max-request-size>
+      		<file-size-threshold>1048576</file-size-threshold>
+		</multipart-config>
   </servlet>
  
   <servlet-mapping>
@@ -36,6 +42,9 @@
     <url-pattern>/</url-pattern>
   </servlet-mapping>
 
-
+  <servlet-mapping>
+ 	<servlet-name>mvc-dispatcher</servlet-name>
+    <url-pattern>*.json</url-pattern>
+  </servlet-mapping>
 
 </web-app>

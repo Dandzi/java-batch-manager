@@ -1,19 +1,33 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	http://www.springframework.org/schema/beans/spring-beans.xsd
 	http://www.springframework.org/schema/context 
-    http://www.springframework.org/schema/context/spring-context.xsd">
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/websocket
+    http://www.springframework.org/schema/websocket/spring-websocket.xsd
+    http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
     
-    <bean id="jobService" class="com.javabatchmanager.service.impl.JobServiceImpl">
-		<property name="jobRegistry" ref="jobRegistry"></property>
-		<property name="jobLauncher" ref="jobLauncher"></property>
-		<property name="automaticJobRegistrar" ref="automaticJobRegistrar"></property>
-		<property name="jobRepository" ref="jobRepository"></property>
-		<property name="jobExplorer" ref = "jobExplorer"></property>
-		<property name="jobParametersConverter" ref="jobParametersConverter"></property>
+
+    
+    <aop:aspectj-autoproxy />
+	<bean id="lockingAspect" class="com.javabatchmanager.watchers.LockingAspect">
+		<property name="lock" ref="lock"></property>
+	</bean>
+	<bean id="lock" class="java.util.concurrent.locks.ReentrantLock"></bean>
+
+	
+	<bean class="org.springframework.context.support.ResourceBundleMessageSource"
+		id="messageSource">
+		<property value="view" name="basename" />
 	</bean>
     
-    </beans>
+    <bean id="multipartResolver"
+		class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
+	</bean>
+
+</beans>
